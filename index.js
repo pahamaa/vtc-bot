@@ -1,16 +1,19 @@
-import puppeteer from 'puppeteer'
-import 'dotenv/config'
-
-const wait = ms => new Promise(r => setTimeout(r, ms))
-
 const login = async (page) => {
-  console.log('[+] Connexion...')
+  console.log('[+] Connexion à la page...')
   await page.goto('https://www.vends-ta-culotte.com/fr/connexion', {
-    waitUntil: 'domcontentloaded',
-    timeout: 30000
+    waitUntil: 'networkidle0',
+    timeout: 60000 // 60 secondes
   })
 
-  await page.waitForSelector('input[name="email"]', { timeout: 10000 })
+  console.log('[+] Page chargée, on attend le champ email...')
+
+  try {
+    await page.waitForSelector('input[name="email"]', { timeout: 20000 }) // attend jusqu'à 20 secondes
+  } catch (err) {
+    console.error('[!] Erreur: champ email introuvable. On prend une capture pour debug...')
+    await page.screenshot({ path: 'debug_login.png' })
+    throw err
+  }
 
   await page.type('input[name="email"]', process.env.USERNAME, { delay: 100 })
   await page.type('input[name="password"]', process.env.PASSWORD, { delay: 100 })
@@ -22,29 +25,3 @@ const login = async (page) => {
 
   console.log('[+] Connecté.')
 }
-
-const logout = async (page) => {
-  console.log('[+] Déconnexion...')
-  await page.goto('https://www.vends-ta-culotte.com/fr/deconnexion', {
-    waitUntil: 'domcontentloaded'
-  })
-  console.log('[+] Déconnecté.')
-}
-
-const run = async () => {
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  })
-
-  const page = await browser.newPage()
-
-  while (true) {
-    await login(page)
-    await wait(20 * 60 * 1000) // ⏱ 20 minutes
-    await logout(page)
-    await wait(10 * 1000) // petite pause avant de recommencer
-  }
-}
-
-run()
