@@ -3,6 +3,19 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "install": "npx playwright install --with-deps",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "playwright": "^1.43.1"
+  }
+}
+{
+  "name": "vtc-playwright-bot",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
