@@ -1,31 +1,33 @@
-const login = async (page) => {
-  console.log('[+] Ouverture de la page...')
-  await page.goto('https://www.vends-ta-culotte.com/', {
-    waitUntil: 'networkidle0',
-    timeout: 60000
-  })
+import { chromium } from 'playwright'
+import 'dotenv/config'
 
-  console.log('[+] Clic sur "Déjà membre ?" (via texte visible)')
-  const [loginBtn] = await page.$x("//a[contains(text(), 'Déjà membre')]")
-  if (!loginBtn) {
-    console.log('[!] Bouton "Déjà membre" introuvable. Capture d’écran...')
-    await page.screenshot({ path: 'no-login-button.png', fullPage: true })
-    throw new Error('Bouton "Déjà membre ?" non trouvé')
+const wait = ms => new Promise(r => setTimeout(r, ms))
+
+const run = async () => {
+  const browser = await chromium.launch({ headless: true })
+  const page = await browser.newPage()
+
+  while (true) {
+    console.log('[+] Connexion...')
+    await page.goto('https://www.vends-ta-culotte.com/')
+    await page.getByRole('button', { name: 'Entrer' }).click()
+    await page.getByRole('button', { name: 'Déjà membre' }).click()
+    await page.getByRole('textbox', { name: 'Pseudo ou email' }).fill(process.env.USERNAME)
+    await page.getByRole('textbox', { name: 'Mot de passe' }).fill(process.env.PASSWORD)
+    await page.getByRole('button', { name: 'Valider' }).click()
+
+    console.log('[~] Connecté, attente 20 minutes...')
+    await wait(20 * 60 * 1000)
+
+    console.log('[+] Déconnexion...')
+    await page.goto('https://www.vends-ta-culotte.com/')
+    await page.getByRole('button', { name: 'Déconnexion' }).click()
+
+    console.log('[~] Déconnecté, attente 2 minutes...')
+    await wait(2 * 60 * 1000)
   }
-  await loginBtn.click()
 
-  console.log('[+] Attente du formulaire...')
-  await page.waitForSelector('#loginform input[name="email"]', { timeout: 15000 })
-
-  console.log('[+] Remplissage email/pwd')
-  await page.type('#loginform input[name="email"]', process.env.USERNAME, { delay: 100 })
-  await page.type('#loginform input[name="password"]', process.env.PASSWORD, { delay: 100 })
-
-  console.log('[+] Clic sur "Valider"')
-  await Promise.all([
-    page.click('#loginform button[type="submit"]'),
-    page.waitForNavigation({ waitUntil: 'networkidle2' })
-  ])
-
-  console.log('[+] Connecté.')
+  // await browser.close() // jamais atteint
 }
+
+run()
