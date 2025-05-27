@@ -9,7 +9,7 @@ const randomBetween = (min, max) => {
   return value * 60 * 1000
 }
 
-// Liste des comptes à alterner
+// 🔁 Comptes à faire tourner
 const accounts = [
   { username: process.env.USER1_EMAIL, password: process.env.USER1_PASSWORD },
   { username: process.env.USER2_EMAIL, password: process.env.USER2_PASSWORD }
@@ -26,48 +26,48 @@ const run = async () => {
   while (true) {
     for (const account of accounts) {
       try {
-        console.log(`[+] Connexion avec ${account.username}...`)
+        console.log(`\n[+] Connexion avec ${account.username}...`)
         await page.goto('https://www.vends-ta-culotte.com/')
         await page.waitForTimeout(3000)
 
-        // étape 1 : cliquer sur "Entrer" si présent
+        // 1. "Entrer" si présent
         try {
           const entrerBtn = await page.getByRole('button', { name: 'Entrer' })
           await entrerBtn.waitFor({ timeout: 3000 })
           await entrerBtn.click()
           console.log('[✓] "Entrer" cliqué.')
         } catch {
-          console.log('[~] Pas de bouton "Entrer", on continue...')
+          console.log('[~] Bouton "Entrer" non trouvé, on continue...')
         }
 
-        // étape 2 : cliquer sur "Déjà membre"
+        // 2. "Déjà membre"
         const dejaMembreBtn = await page.getByRole('button', { name: 'Déjà membre' })
         await dejaMembreBtn.waitFor({ timeout: 5000 })
         await dejaMembreBtn.click()
         console.log('[✓] "Déjà membre" cliqué.')
 
-        // étape 3 : login
+        // 3. Connexion
         await page.getByRole('textbox', { name: 'Pseudo ou email' }).fill(account.username)
         await page.getByRole('textbox', { name: 'Mot de passe' }).fill(account.password)
         await page.getByRole('button', { name: 'Valider' }).click()
         console.log('[✓] Connexion validée.')
 
-        // étape 4 : pause entre 3 et 6 minutes
-        console.log('[~] Pause entre 3 et 6 minutes...')
+        // 4. Pause active (3–6 minutes)
+        console.log('[~] Connecté, pause entre 3 et 6 minutes...')
         await wait(randomBetween(3, 6))
 
-        // étape 5 : déconnexion
+        // 5. Déconnexion
         console.log('[+] Déconnexion...')
         await page.goto('https://www.vends-ta-culotte.com/')
         await page.getByRole('button', { name: 'Déconnexion' }).click()
         console.log('[✓] Déconnecté.')
 
-        // pause entre utilisateurs
-        console.log('[~] Pause 2 minutes avant le prochain compte...')
-        await wait(2 * 60 * 1000)
+        // 6. Pause rapide entre comptes (10 secondes)
+        console.log('[~] Attente 10 secondes avant le prochain compte...')
+        await wait(10 * 1000)
       } catch (err) {
-        console.error(`[!] Erreur pour ${account.username} :`, err.message)
-        console.log('[~] Reload de la page + pause 30 sec...')
+        console.error(`[!] Erreur pour ${account.username} : ${err.message}`)
+        console.log('[~] Reload + attente 30 secondes...')
         try {
           await page.reload({ waitUntil: 'networkidle' })
         } catch (_) {}
