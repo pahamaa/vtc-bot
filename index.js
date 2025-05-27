@@ -20,9 +20,9 @@ const run = async () => {
     try {
       console.log('[+] Connexion...')
       await page.goto('https://www.vends-ta-culotte.com/')
-      await page.waitForTimeout(5000) // Laisse le temps à la page de charger
+      await page.waitForTimeout(5000) // pour être sûr que tout est chargé
 
-      await page.getByRole('button', { name: 'Entrer' }).click()
+      // direct vers "Déjà membre", sans passer par "Entrer"
       await page.getByRole('button', { name: 'Déjà membre' }).click()
 
       await page.getByRole('textbox', { name: 'Pseudo ou email' }).fill(process.env.USERNAME)
@@ -31,7 +31,7 @@ const run = async () => {
       await page.getByRole('button', { name: 'Valider' }).click()
 
       console.log('[~] Connecté, pause entre 3 et 6 minutes...')
-      await wait(randomBetween(3, 6)) // ✅ entre 3 et 6 minutes
+      await wait(randomBetween(3, 6))
 
       console.log('[+] Déconnexion...')
       await page.goto('https://www.vends-ta-culotte.com/')
@@ -42,11 +42,14 @@ const run = async () => {
     } catch (err) {
       console.error('[!] Une erreur est survenue :', err.message)
       console.log('[~] Pause 30 secondes avant de réessayer...')
+      try {
+        await page.reload({ waitUntil: 'networkidle' })
+      } catch (_) {}
       await wait(30 * 1000)
     }
   }
 
-  // await browser.close() // pas exécuté à cause de la boucle infinie
+  // await browser.close() // boucle infinie
 }
 
 run()
