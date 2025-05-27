@@ -14,21 +14,49 @@ const run = async () => {
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   })
+
   const page = await browser.newPage()
 
   while (true) {
     try {
       console.log('[+] Connexion...')
       await page.goto('https://www.vends-ta-culotte.com/')
-      await page.waitForTimeout(5000) // pour être sûr que tout est chargé
+      await page.waitForTimeout(3000) // sécurité chargement
 
-      // direct vers "Déjà membre", sans passer par "Entrer"
-      await page.getByRole('button', { name: 'Déjà membre' }).click()
+      // 🔹 Étape 1 : cliquer sur "Entrer" si présent
+      try {
+        const entrerBtn = await page.getByRole('button', { name: 'Entrer' })
+        await entrerBtn.waitFor({ timeout: 3000 })
+        await entrerBtn.click()
+        console.log('[✓] "Entrer" cliqué.')
+        await page.waitForTimeout(1000)
+      } catch {
+        console.log('[~] Bouton "Entrer" non trouvé, on continue...')
+      }
 
+      // 🔹 Étape 2 : cliquer sur "Déjà membre"
+      try {
+        const dejaMembreBtn = await page.getByRole('button', { name: 'Déjà membre' })
+        await dejaMembreBtn.waitFor({ timeout: 5000 })
+        await dejaMembreBtn.click()
+        console.log('[✓] "Déjà membre" cliqué.')
+      } catch {
+        throw new Error('Bouton "Déjà membre" introuvable')
+      }
+
+      // 🔹 Étape 3 : remplir les champs
       await page.getByRole('textbox', { name: 'Pseudo ou email' }).fill(process.env.USERNAME)
       await page.getByRole('textbox', { name: 'Mot de passe' }).fill(process.env.PASSWORD)
 
-      await page.getByRole('button', { name: 'Valider' }).click()
+      // 🔹 Étape 4 : cliquer sur "Valider"
+      try {
+        const validerBtn = await page.getByRole('button', { name: 'Valider' })
+        await validerBtn.waitFor({ timeout: 5000 })
+        await validerBtn.click()
+        console.log('[✓] Connexion validée.')
+      } catch {
+        throw new Error('Bouton "Valider" introuvable')
+      }
 
       console.log('[~] Connecté, pause entre 3 et 6 minutes...')
       await wait(randomBetween(3, 6))
@@ -40,16 +68,14 @@ const run = async () => {
       console.log('[~] Déconnecté, attente 2 minutes...')
       await wait(2 * 60 * 1000)
     } catch (err) {
-      console.error('[!] Une erreur est survenue :', err.message)
-      console.log('[~] Pause 30 secondes avant de réessayer...')
+      console.error(`[!] Erreur détectée : ${err.message}`)
+      console.log('[~] Tentative de rechargement dans 30 secondes...')
       try {
         await page.reload({ waitUntil: 'networkidle' })
-      } catch (_) {}
+      } catch {}
       await wait(30 * 1000)
     }
   }
-
-  // await browser.close() // boucle infinie
 }
 
 run()
