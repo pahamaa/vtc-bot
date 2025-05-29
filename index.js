@@ -2,8 +2,24 @@ import { chromium } from 'playwright'
 import 'dotenv/config'
 
 const wait = ms => new Promise(r => setTimeout(r, ms))
-const randomBetween = (min, max) =>
-  (console.log(`[~] Pause aléatoire : ${min}-${max} min`), Math.floor(Math.random() * (max - min + 1) + min) * 60 * 1000)
+const randomBetween = (min, max) => {
+  const value = Math.floor(Math.random() * (max - min + 1) + min)
+  console.log(`[~] Pause aléatoire : ${value} minutes`)
+  return value * 60 * 1000
+}
+
+const safeGoto = async (page, url, retries = 3) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 })
+      return
+    } catch (err) {
+      console.warn(`[!] Échec goto (tentative ${i + 1}) : ${err.message}`)
+      await wait(3000)
+    }
+  }
+  throw new Error('Échec navigation après plusieurs tentatives.')
+}
 
 const accounts = [
   { username: process.env.USER1_EMAIL, password: process.env.USER1_PASSWORD },
@@ -22,9 +38,9 @@ const run = async () => {
 
         page = await browser.newPage()
         console.log(`\n[+] Connexion avec ${account.username}...`)
+        await wait(3000 + Math.random() * 2000)
 
-        await page.goto('https://www.vends-ta-culotte.com/', { waitUntil: 'load' })
-        await page.waitForTimeout(2000)
+        await safeGoto(page, 'https://www.vends-ta-culotte.com/')
 
         try {
           const entrerBtn = await page.getByRole('button', { name: 'Entrer' })
@@ -35,10 +51,16 @@ const run = async () => {
           console.log('[~] Bouton "Entrer" non trouvé, on continue...')
         }
 
-        const dejaMembreBtn = await page.getByRole('button', { name: 'Déjà membre' })
-        await dejaMembreBtn.waitFor({ timeout: 5000 })
-        await dejaMembreBtn.click()
-        console.log('[✓] "Déjà membre" cliqué.')
+        try {
+          const dejaMembreBtn = await page.getByRole('button', { name: 'Déjà membre' })
+          await dejaMembreBtn.waitFor({ timeout: 5000 })
+          await dejaMembreBtn.click()
+          console.log('[✓] "Déjà membre" cliqué.')
+        } catch {
+          console.warn('[!] Bouton "Déjà membre" introuvable. On saute ce compte.')
+          await browser.close()
+          continue
+        }
 
         await page.getByRole('textbox', { name: 'Pseudo ou email' }).fill(account.username)
         await page.getByRole('textbox', { name: 'Mot de passe' }).fill(account.password)
@@ -49,7 +71,7 @@ const run = async () => {
         await wait(randomBetween(3, 6))
 
         console.log('[+] Déconnexion...')
-        await page.goto('https://www.vends-ta-culotte.com/', { waitUntil: 'load' })
+        await safeGoto(page, 'https://www.vends-ta-culotte.com/')
         await page.getByRole('button', { name: 'Déconnexion' }).click()
         console.log('[✓] Déconnecté.')
 
@@ -59,7 +81,7 @@ const run = async () => {
       } catch (err) {
         console.error(`[!] Erreur pour ${account.username} : ${err.message}`)
         console.log('[~] Pause 30 secondes et on continue...')
-        await wait(30 * 1000)
+        await wait(30000)
       } finally {
         try {
           if (page) await page.close()
