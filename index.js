@@ -33,7 +33,7 @@ const run = async () => {
 
         page = await browser.newPage()
         console.log(`\n[+] Connexion avec ${account.username}...`)
-        await wait(2000 + Math.random() * 1000)
+        await wait(2000 + Math.random() * 1000) // petite pause (optionnelle)
 
         await safeGoto(page, 'https://www.vends-ta-culotte.com/')
 
@@ -62,15 +62,17 @@ const run = async () => {
         await page.getByRole('button', { name: 'Valider' }).click()
         console.log('[✓] Connexion validée.')
 
+        // ***** MODIF IMPORTANTE *****
+        // Pause connectée = 2 minutes (120 000 ms)
         console.log('[~] Pause connectée 2 minutes...')
-        await wait(2 * 60 * 1000) // 2 minutes
+        await wait(2 * 60 * 1000)
 
         console.log('[+] Déconnexion...')
         await safeGoto(page, 'https://www.vends-ta-culotte.com/')
         await page.getByRole('button', { name: 'Déconnexion' }).click()
         console.log('[✓] Déconnecté.')
 
-        // Plus d'attente après la déconnexion, on passe au compte suivant
+        // ***** PLUS D'ATTENTE ici, on enchaîne direct *****
 
       } catch (err) {
         console.error(`[!] Erreur pour ${account.username} : ${err.message}`)
