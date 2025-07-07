@@ -67,8 +67,8 @@ const run = async () => {
         await page.getByRole('button', { name: 'Valider' }).click()
         console.log('[✓] Connexion validée.')
 
-        console.log('[~] Pause entre 3 et 6 minutes...')
-        await wait(randomBetween(3, 6))
+        console.log('[~] Pause entre 1 et 2 minutes...')
+await wait(randomBetween(1, 2))
 
         console.log('[+] Déconnexion...')
         await safeGoto(page, 'https://www.vends-ta-culotte.com/')
