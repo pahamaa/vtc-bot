@@ -4,7 +4,7 @@ import 'dotenv/config'
 const wait = ms => new Promise(r => setTimeout(r, ms))
 const randomBetween = (min, max) => {
   const value = Math.floor(Math.random() * (max - min + 1) + min)
-  console.log([~] Pause aléatoire : ${value} minutes)
+  console.log(`[~] Pause aléatoire : ${value} minutes`)
   return value * 60 * 1000
 }
 
@@ -14,7 +14,7 @@ const safeGoto = async (page, url, retries = 3) => {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 })
       return
     } catch (err) {
-      console.warn([!] Échec goto (tentative ${i + 1}) : ${err.message})
+      console.warn(`[!] Échec goto (tentative ${i + 1}) : ${err.message}`)
       await wait(3000)
     }
   }
@@ -37,7 +37,7 @@ const run = async () => {
         })
 
         page = await browser.newPage()
-        console.log(\n[+] Connexion avec ${account.username}...)
+        console.log(`\n[+] Connexion avec ${account.username}...`)
         await wait(3000 + Math.random() * 2000)
 
         await safeGoto(page, 'https://www.vends-ta-culotte.com/')
@@ -68,7 +68,7 @@ const run = async () => {
         console.log('[✓] Connexion validée.')
 
         console.log('[~] Pause entre 1 et 2 minutes...')
-await wait(randomBetween(1, 2))
+        await wait(randomBetween(1, 2))
 
         console.log('[+] Déconnexion...')
         await safeGoto(page, 'https://www.vends-ta-culotte.com/')
@@ -79,7 +79,7 @@ await wait(randomBetween(1, 2))
         await wait(10 * 1000)
 
       } catch (err) {
-        console.error([!] Erreur pour ${account.username} : ${err.message})
+        console.error(`[!] Erreur pour ${account.username} : ${err.message}`)
         console.log('[~] Pause 30 secondes et on continue...')
         await wait(30000)
       } finally {
