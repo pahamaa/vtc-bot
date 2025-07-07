@@ -2,11 +2,6 @@ import { chromium } from 'playwright'
 import 'dotenv/config'
 
 const wait = ms => new Promise(r => setTimeout(r, ms))
-const randomBetween = (min, max) => {
-  const value = Math.floor(Math.random() * (max - min + 1) + min)
-  console.log(`[~] Pause aléatoire : ${value} minutes`)
-  return value * 60 * 1000
-}
 
 const safeGoto = async (page, url, retries = 3) => {
   for (let i = 0; i < retries; i++) {
@@ -38,7 +33,7 @@ const run = async () => {
 
         page = await browser.newPage()
         console.log(`\n[+] Connexion avec ${account.username}...`)
-        await wait(3000 + Math.random() * 2000)
+        await wait(2000 + Math.random() * 1000)
 
         await safeGoto(page, 'https://www.vends-ta-culotte.com/')
 
@@ -67,16 +62,15 @@ const run = async () => {
         await page.getByRole('button', { name: 'Valider' }).click()
         console.log('[✓] Connexion validée.')
 
-        console.log('[~] Pause entre 3 et 6 minutes...')
-        await wait(randomBetween(3, 6))
+        console.log('[~] Pause connectée 2 minutes...')
+        await wait(2 * 60 * 1000) // 2 minutes
 
         console.log('[+] Déconnexion...')
         await safeGoto(page, 'https://www.vends-ta-culotte.com/')
         await page.getByRole('button', { name: 'Déconnexion' }).click()
         console.log('[✓] Déconnecté.')
 
-        console.log('[~] Attente 10 secondes...')
-        await wait(10 * 1000)
+        // Plus d'attente après la déconnexion, on passe au compte suivant
 
       } catch (err) {
         console.error(`[!] Erreur pour ${account.username} : ${err.message}`)
