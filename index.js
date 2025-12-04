@@ -64,7 +64,7 @@ const run = async () => {
 
         await page.getByRole('textbox', { name: 'Pseudo ou email' }).fill(account.username)
         await page.getByRole('textbox', { name: 'Mot de passe' }).fill(account.password)
-        await page.getByRole('button', { name: 'Valider' }).click()
+        await page.getByRole('button', { name: 'Continuer' }).click()
         console.log('[✓] Connexion validée.')
 
         console.log('[~] Pause entre 1 et 2 minutes...')
